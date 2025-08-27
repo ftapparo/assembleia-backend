@@ -1,40 +1,142 @@
+
+/**
+ * @file AdminRoutes.ts
+ * @description Rotas administrativas para controle de assembleias e itens.
+ *
+ * Endpoints principais:
+ *   - GET /api/admin/assembly: Consulta dados da assembleia
+ *   - POST /api/admin/assembly/start: Inicia assembleia
+ *   - POST /api/admin/assembly/close: Encerra assembleia
+ *   - POST /api/admin/items/:orderNo/open: Abre item
+ *   - POST /api/admin/items/:orderNo/close: Fecha item
+ *   - POST /api/admin/items/:orderNo/void: Anula item
+ *
+ * Integra o controller admin e pode usar autenticação adminAuth.
+ */
 import { Router } from 'express';
-import { prisma } from '../db/client';
 import { adminAuth } from '../middlewares/adminAuth';
+import { createAdminController } from '../controllers/adminController';
 
+/**
+ * Instancia o controller administrativo.
+ */
+const ctrl = createAdminController();
+
+/**
+ * Instância do router para rotas administrativas.
+ * (Descomente adminAuth para proteger as rotas)
+ */
 const router = Router();
-router.use(adminAuth);
+//router.use(adminAuth);
 
-// criar assembleia
-router.post('/assemblies', async (req, res) => {
-    const { title } = req.body;
-    const a = await prisma.assembly.create({ data: { title } });
-    res.json(a);
-});
+/**
+ * @swagger
+ * /admin/assembly:
+ *   get:
+ *     summary: Consulta dados da assembleia atual
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Dados da assembleia retornados com sucesso
+ */
+router.get('/admin/assembly', ctrl.getAssembly);
 
-// iniciar/encerrar assembleia
-router.post('/assemblies/:id/start', async (req, res) => {
-    const a = await prisma.assembly.update({
-        where: { id: req.params.id },
-        data: { status: 'started', startedAt: new Date() }
-    });
-    res.json(a);
-});
-router.post('/assemblies/:id/close', async (req, res) => {
-    const a = await prisma.assembly.update({
-        where: { id: req.params.id },
-        data: { status: 'closed', endedAt: new Date() }
-    });
-    res.json(a);
-});
+/**
+ * @swagger
+ * /admin/assembly/start:
+ *   post:
+ *     summary: Inicia a assembleia
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Assembleia iniciada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ * 
+ */
+router.post('/admin/assembly/start', ctrl.startAssembly);
 
-// criar item
-router.post('/items', async (req, res) => {
-    const { assemblyId, orderNo, title, description, quorumType, quorumValue, compute, voteType, multiple } = req.body;
-    const it = await prisma.item.create({
-        data: { assemblyId, orderNo, title, description, quorumType, quorumValue, compute, voteType, multiple: !!multiple }
-    });
-    res.json(it);
-});
+/**
+ * @swagger
+ * /admin/assembly/close:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Encerra a assembleia
+ *     responses:
+ *       200:
+ *         description: Assembleia encerrada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ */
+router.post('/admin/assembly/close', ctrl.closeAssembly);
+
+/**
+ * @swagger
+ * /admin/items/{orderNo}/open:
+ *   post:
+ *     summary: Abre um item da assembleia
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: orderNo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Número de ordem do item
+ *     responses:
+ *       200:
+ *         description: Item aberto com sucesso
+ */
+router.post('/admin/items/:orderNo/open', ctrl.openItem);
+
+/**
+ * @swagger
+ * /admin/items/{orderNo}/close:
+ *   post:
+ *     summary: Fecha um item da assembleia
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: orderNo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Número de ordem do item
+ *     responses:
+ *       200:
+ *         description: Item fechado com sucesso
+ */
+router.post('/admin/items/:orderNo/close', ctrl.closeItem);
+
+/**
+ * @swagger
+ * /admin/items/{orderNo}/void:
+ *   post:
+ *     summary: Anula um item da assembleia
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: orderNo
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Número de ordem do item
+ *     responses:
+ *       200:
+ *         description: Item anulado com sucesso
+ */
+router.post('/admin/items/:orderNo/void', ctrl.voidItem);
 
 export default router;

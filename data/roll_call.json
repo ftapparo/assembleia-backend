@@ -1,0 +1,28 @@
+{
+  "header": {
+    "assemblyId": "nova-residence-2025-08-28",
+    "title": "Assembleia Geral Extraordinária - Condomínio Nova Residence Quinta das Paineiras",
+    "date": "2025-08-28T18:30:00-03:00",
+    "createdAt": "2025-08-27T18:07:26.104Z",
+    "status": "closed"
+  },
+  "attendees": [
+    {
+      "attendeeId": "jq7rih54ijr93w9s3kzihh",
+      "block": "A",
+      "unit": "6",
+      "code": "FX1TE3",
+      "fraction": 0.300133,
+      "arrivedAt": "2025-08-27T18:07:34.431Z",
+      "linked_units": [
+        {
+          "block": "A",
+          "unit": "8",
+          "code": "UBW0P1",
+          "fraction": 0.280938,
+          "relation": "procuracao"
+        }
+      ]
+    }
+  ]
+}

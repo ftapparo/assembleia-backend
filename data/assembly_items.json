@@ -1,0 +1,101 @@
+{
+    "assembly": {
+        "title": "Assembleia Geral Extraordinária - Condomínio Nova Residence Quinta das Paineiras",
+        "date": "2025-08-28T18:30:00-03:00",
+        "location": "Dependências do Condomínio",
+        "notes": "Primeira chamada 18:30; segunda chamada 19:00."
+    },
+    "items": [
+        {
+            "order_no": 1,
+            "title": "Autorização de mídia digital para propaganda na lavanderia",
+            "description": "Apreciar e votar autorização para veiculação de mídia digital/propaganda nas áreas de lavanderia.",
+            "quorum_type": "simples",
+            "compute": "simples",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 2,
+            "title": "Cobertura para os gardens",
+            "description": "Apreciar e votar autorização para instalação de coberturas nas unidades tipo garden.",
+            "quorum_type": "simples",
+            "compute": "simples",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 3,
+            "title": "Instalação obrigatória de medidores de gás para unidades não habitadas",
+            "description": "Apreciar e votar a obrigatoriedade de instalação de medidores de gás nas unidades ainda não habitadas.",
+            "quorum_type": "simples",
+            "compute": "simples",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 4,
+            "title": "Autorização para reembolso dos medidores de gás furtados",
+            "description": "Apreciar e votar autorização para reembolso dos medidores de gás furtados.",
+            "quorum_type": "simples",
+            "compute": "simples",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 5,
+            "title": "Taxa extra para instalação de câmeras nos halls dos apartamentos e garagens",
+            "description": "Apreciar e votar taxa extra para aquisição/instalação de câmeras de segurança nos halls dos apartamentos e nas garagens.",
+            "quorum_type": "simples",
+            "compute": "fracao",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 6,
+            "title": "Taxa extra para instalação de leitor facial na brinquedoteca, academia e halls sociais",
+            "description": "Apreciar e votar taxa extra para instalação de sistema de leitor facial na brinquedoteca, academia e halls sociais.",
+            "quorum_type": "simples",
+            "compute": "fracao",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 7,
+            "title": "Aplicação de multa por descumprimento reiterado das normas",
+            "description": "Apreciar e votar diretriz para aplicação de multa em casos de descumprimento reiterado das normas condominiais.",
+            "quorum_type": "simples",
+            "compute": "simples",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 8,
+            "title": "Recursos de multas",
+            "description": "Apreciar e votar recursos de multas aplicadas (pauta geral).",
+            "quorum_type": "simples",
+            "compute": "simples",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": false
+        },
+        {
+            "order_no": 9,
+            "title": "Proibição de locação por temporada (alteração da Convenção)",
+            "description": "Proposta de alteração da Convenção para proibir locação por temporada; cláusula sujeita a quórum qualificado de 2/3 dos condôminos. Se não houver 2/3, o item pode seguir como assembleia permanente (art. 1.353 CC).",
+            "quorum_type": "qualificado",
+            "quorum_value": 66.67,
+            "compute": "fracao",
+            "vote_type": "direto",
+            "multiple": false,
+            "permanent": true
+        }
+    ]
+}
