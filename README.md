@@ -50,12 +50,33 @@ src/
 
 A API estará disponível em `http://localhost:4000` (ou porta definida no `.env`).
 
-## Endpoints principais
-- `GET /health` — Verifica se a API está funcionando
-- `POST /api/admin/login` — Login de administrador
-- `POST /api/ops/login` — Login de operador
-- `GET /api/assembleias` — Listagem de assembleias
-- `POST /api/votar` — Realiza uma votação
+
+## Endpoints da API
+
+### Healthcheck
+- `GET /api/healthcheck` — Verifica se a API está funcionando
+
+### Rotas Públicas
+- `GET /api/public/status` — Consulta status público da assembleia
+
+### Rotas de Administração
+- `GET /api/admin/assembly` — Consulta dados da assembleia
+- `POST /api/admin/assembly/start` — Inicia assembleia
+- `POST /api/admin/assembly/close` — Encerra assembleia
+- `POST /api/admin/items/:orderNo/open` — Abre item da assembleia
+- `POST /api/admin/items/:orderNo/close` — Fecha item da assembleia
+- `POST /api/admin/items/:orderNo/void` — Anula item da assembleia
+
+### Rotas de Operador
+- `GET /api/operator/units` — Lista todas as unidades
+- `GET /api/operator/units/:block/:unit` — Consulta código de uma unidade
+- `GET /api/operator/roll-call` — Lista presença atual (roll call)
+- `POST /api/operator/roll-call/present` — Marca presença de participante
+- `POST /api/operator/roll-call/:attendeeId/link` — Vincula unidade a participante
+
+### Rotas de Votação
+- `POST /api/vote/access` — Solicita acesso à votação
+- `POST /api/vote/cast` — Registra um voto
 
 ## Contribuição
 Pull requests são bem-vindos! Para sugestões, abra uma issue.
