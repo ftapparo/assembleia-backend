@@ -16,11 +16,11 @@ import helmet from 'helmet';
 import http from 'http';
 import pinoHttp from 'pino-http';
 import { logger } from './utils/logger';
-import healthRoutes from './routes/HealthRoutes';
-import adminRoutes from './routes/AdminRoutes';
-import publicRoutes from './routes/PublicRoutes';
-import opsRoutes from './routes/OperatorRoutes';
-import voteRoutes from './routes/VoteRoutes';
+import healthRoutes from './routes/HealthRoutess';
+import adminRoutes from './routes/AdminRoutess';
+import publicRoutes from './routes/PublicRoutess';
+import opsRoutes from './routes/OperatorRoutess';
+import voteRoutes from './routes/VoteRoutess';
 
 import { createIO } from './sockets/io';
 

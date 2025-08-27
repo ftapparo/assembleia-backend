@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db/client';
-import { adminAuth } from '../middlewares/Auth';
+import { adminAuth } from '../middlewares/adminAuth';
 
 const router = Router();
 router.use(adminAuth);
