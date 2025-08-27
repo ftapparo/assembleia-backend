@@ -18,6 +18,15 @@ export interface Item {
     multiple: boolean;
     permanent: boolean;
     status: ItemStatus;
+
+    // NOVOS CAMPOS
+    votingStartedAt?: string;
+    votingEndedAt?: string;
+    results?: {
+        totals: Record<string, { count: number; weight: number }>;
+        totalCount: number;
+        totalWeight: number;
+    };
 }
 
 export interface Assembly {
@@ -146,16 +155,13 @@ class AssemblyService {
         if (idx < 0) throw new Error('Item não encontrado');
         if (s.items[idx].status === 'void') throw new Error('Item anulado');
 
-        // fecha o atual (se existir)
+        // se já houver item aberto, retorna erro
         if (s.currentItem != null) {
-            const currIdx = s.items.findIndex(i => i.order_no === s.currentItem);
-            if (currIdx >= 0 && s.items[currIdx].status === 'open') {
-                s.items[currIdx].status = 'closed';
-            }
-            s.currentItem = undefined;
+            throw new Error('Já existe um item aberto');
         }
 
         s.items[idx].status = 'open';
+        s.items[idx].votingStartedAt = new Date().toISOString();
         s.currentItem = orderNo;
         writeState(s);
     }
@@ -167,6 +173,7 @@ class AssemblyService {
         if (s.items[idx].status !== 'open') throw new Error('Item não está aberto');
 
         s.items[idx].status = 'closed';
+        s.items[idx].votingEndedAt = new Date().toISOString();
         if (s.currentItem === orderNo) s.currentItem = undefined;
         writeState(s);
     }

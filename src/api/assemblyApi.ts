@@ -17,6 +17,7 @@ import swaggerUi from 'swagger-ui-express';
 import healthRoutes from '../routes/healthRoutes';
 import adminRoutes from '../routes/adminRoutes';
 import operatorRoutes from '../routes/operatorRoutes';
+import voteRoutes from '../routes/voteRoutes';
 
 import { createIO } from '../sockets/io';
 import { swaggerSpec } from '../swagger';
@@ -62,7 +63,7 @@ export async function startServer() {
     app.use('/api', adminRoutes);
     // app.use('/api', publicRoutes);
     app.use('/api', operatorRoutes);
-    // app.use('/api', voteRoutes);
+    app.use('/api', voteRoutes);
 
     /**
      * Rota para servir a documentação Swagger UI.

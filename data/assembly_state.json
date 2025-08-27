@@ -5,9 +5,8 @@
     "date": "2025-08-28T18:30:00-03:00",
     "location": "Dependências do Condomínio",
     "notes": "Primeira chamada 18:30; segunda chamada 19:00.",
-    "status": "closed",
-    "startedAt": "2025-08-27T18:07:26.102Z",
-    "endedAt": "2025-08-27T18:07:58.295Z"
+    "status": "started",
+    "startedAt": "2025-08-27T19:02:39.948Z"
   },
   "items": [
     {
@@ -19,7 +18,19 @@
       "vote_type": "direto",
       "multiple": false,
       "permanent": false,
-      "status": "pending"
+      "status": "closed",
+      "votingStartedAt": "2025-08-27T19:03:55.833Z",
+      "results": {
+        "totals": {
+          "1": {
+            "count": 2,
+            "weight": 2
+          }
+        },
+        "totalCount": 2,
+        "totalWeight": 2
+      },
+      "votingEndedAt": "2025-08-27T19:05:23.837Z"
     },
     {
       "order_no": 2,
@@ -108,7 +119,19 @@
       "vote_type": "direto",
       "multiple": false,
       "permanent": true,
-      "status": "pending"
+      "status": "open",
+      "votingStartedAt": "2025-08-27T19:05:28.230Z",
+      "results": {
+        "totals": {
+          "1": {
+            "count": 2,
+            "weight": 0.45709900000000003
+          }
+        },
+        "totalCount": 2,
+        "totalWeight": 0.45709900000000003
+      }
     }
-  ]
+  ],
+  "currentItem": 9
 }

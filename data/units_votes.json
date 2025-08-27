@@ -1,0 +1,48 @@
+{
+  "votes": [
+    {
+      "id": "1mhb4j9uz49mxb2lxbwfnk",
+      "assemblyId": "nova-residence-2025-08-28",
+      "item_order_no": 1,
+      "attendeeId": "qvhnokweciic44p2t183o",
+      "block": "A",
+      "unit": "124",
+      "choice": "1",
+      "weight": 1,
+      "createdAt": "2025-08-27T19:04:15.334Z"
+    },
+    {
+      "id": "abno1e5q7zue00d17gd94d",
+      "assemblyId": "nova-residence-2025-08-28",
+      "item_order_no": 1,
+      "attendeeId": "qvhnokweciic44p2t183o",
+      "block": "B",
+      "unit": "95",
+      "choice": "1",
+      "weight": 1,
+      "createdAt": "2025-08-27T19:04:15.334Z"
+    },
+    {
+      "id": "7jercokj0a8crrzoh2tybo",
+      "assemblyId": "nova-residence-2025-08-28",
+      "item_order_no": 9,
+      "attendeeId": "qvhnokweciic44p2t183o",
+      "block": "A",
+      "unit": "124",
+      "choice": "1",
+      "weight": 0.212253,
+      "createdAt": "2025-08-27T19:05:38.142Z"
+    },
+    {
+      "id": "bi5p8houdz6200z363h88o",
+      "assemblyId": "nova-residence-2025-08-28",
+      "item_order_no": 9,
+      "attendeeId": "qvhnokweciic44p2t183o",
+      "block": "B",
+      "unit": "95",
+      "choice": "1",
+      "weight": 0.244846,
+      "createdAt": "2025-08-27T19:05:38.142Z"
+    }
+  ]
+}

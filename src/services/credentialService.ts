@@ -17,8 +17,12 @@ export type Attendee = {
     unit: string;
     code: string;
     fraction: number;
-    arrivedAt: string; // ISO timestamp
+    arrivedAt: string;
     linked_units: LinkedUnit[];
+
+    // NOVOS CAMPOS:
+    accessedAt?: string;  // quando o morador entrou no link
+    accessStatus?: 'pending' | 'accessed'; // estado do acesso
 };
 
 type RollCallFile = {
@@ -116,7 +120,8 @@ export class RollCallService {
             code: u.code,
             fraction: u.fraction,
             arrivedAt: new Date().toISOString(),
-            linked_units: []
+            linked_units: [],
+            accessStatus: 'pending'
         };
 
         file.attendees.push(attendee);
@@ -161,7 +166,23 @@ export class RollCallService {
         return { attendee: file.attendees[idx], totalFraction };
     }
 
-    /** Retorna o code (6 chars) de uma unidade específica, para exibir ao operador */
+    markAccess(block: string, unit: string | number, code: string) {
+        const file = this.read();
+        if (!file.header || file.header.status !== 'started') {
+            throw new Error('Assembleia não está aberta');
+        }
+        const idx = file.attendees.findIndex(a =>
+            a.block.toUpperCase() === String(block).toUpperCase().replace('BLOCO', '').trim() &&
+            a.unit === String(unit).replace(/^0+/, '') &&
+            a.code === code
+        );
+        if (idx < 0) throw new Error('Presença não encontrada. Procure o credenciamento.');
+        file.attendees[idx].accessedAt = new Date().toISOString();
+        file.attendees[idx].accessStatus = 'accessed';
+        this.write(file);
+        return file.attendees[idx];
+    }
+
     getCodeByUnit(block: string, unit: string | number) {
         const u = this.units.findByBlockUnit(block, unit);
         if (!u) throw new Error('Unidade não encontrada');
