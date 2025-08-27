@@ -16,7 +16,7 @@ import helmet from 'helmet';
 import http from 'http';
 import pinoHttp from 'pino-http';
 import { logger } from './utils/logger';
-import healthRoutes from './routes/healthRoute';
+import healthRoutes from './routes/healthRoutes';
 import adminRoutes from './routes/adminRoutes';
 import publicRoutes from './routes/publicRoutes';
 import opsRoutes from './routes/operatorRoutes';
