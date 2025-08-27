@@ -21,6 +21,7 @@ import voteRoutes from '../routes/voteRoutes';
 
 import { createIO } from '../sockets/io';
 import { swaggerSpec } from '../swagger';
+import publicRoutes from '../routes/publicRoutes';
 
 /**
  * Inicializa o servidor backend.
@@ -55,15 +56,15 @@ export async function startServer() {
      * Registro das rotas principais da API.
      * - /api/health: Healthcheck
      * - /api/admin: Rotas administrativas
-     * - /api/public: Rotas públicas (comentado)
-     * - /api/ops: Rotas de operador (comentado)
+     * - /api/operator: Rotas de operador (comentado)
      * - /api/vote: Rotas de votação (comentado)
+     * - /api/public: Rotas públicas (comentado)
      */
     app.use('/api', healthRoutes);
     app.use('/api', adminRoutes);
-    // app.use('/api', publicRoutes);
     app.use('/api', operatorRoutes);
     app.use('/api', voteRoutes);
+    app.use('/api', publicRoutes);
 
     /**
      * Rota para servir a documentação Swagger UI.

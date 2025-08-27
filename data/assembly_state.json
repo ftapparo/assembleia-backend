@@ -119,7 +119,7 @@
       "vote_type": "direto",
       "multiple": false,
       "permanent": true,
-      "status": "open",
+      "status": "closed",
       "votingStartedAt": "2025-08-27T19:05:28.230Z",
       "results": {
         "totals": {
@@ -130,8 +130,8 @@
         },
         "totalCount": 2,
         "totalWeight": 0.45709900000000003
-      }
+      },
+      "votingEndedAt": "2025-08-27T19:16:58.902Z"
     }
-  ],
-  "currentItem": 9
+  ]
 }
