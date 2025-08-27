@@ -1,0 +1,16 @@
+# Node
+node_modules
+dist
+coverage
+
+# Env
+.env
+.env.local
+.env.development
+.env.production
+
+# OS/Editor
+.DS_Store
+.vscode
+
+/generated/prisma
