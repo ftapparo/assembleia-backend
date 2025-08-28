@@ -4,7 +4,6 @@ dist
 coverage
 
 # Env
-.env
 .env.local
 .env.development
 .env.production

@@ -1,6 +1,7 @@
 // src/services/vote.service.ts
 import fs from 'fs';
 import path from 'path';
+import lockfile from 'proper-lockfile';
 import { state } from './assemblyService';
 import { rollCallService } from './credentialService';
 
@@ -37,8 +38,21 @@ function ensureVotesFile(): VotesFile {
     return JSON.parse(raw) as VotesFile;
 }
 
-function writeVotes(data: VotesFile) {
-    fs.writeFileSync(VOTES_FILE, JSON.stringify(data, null, 2), 'utf-8');
+async function writeVotes(data: VotesFile) {
+    let release: (() => Promise<void>) | undefined;
+    try {
+        release = await lockfile.lock(VOTES_FILE, {
+            retries: {
+                retries: 20,
+                factor: 1,
+                minTimeout: 100,
+                maxTimeout: 100
+            }
+        });
+        fs.writeFileSync(VOTES_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } finally {
+        if (release) await release();
+    }
 }
 
 function computeAttendeeWeight(attendeeId: string, computeMode: 'simples' | 'fracao') {
@@ -108,7 +122,7 @@ export const voteService = {
         );
     },
 
-    cast(attendeeId: string, itemOrderNo: number, choice: number) {
+    async cast(attendeeId: string, itemOrderNo: number, choice: number) {
         const s = state.getState();
         const item = s.items.find(i => i.order_no === itemOrderNo);
         if (!item) throw new Error('Item não encontrado');
@@ -177,8 +191,8 @@ export const voteService = {
             f.votes.push(rec);
         }
 
-        // persiste votos
-        writeVotes(f);
+        // persiste votos com lock e retries
+        await writeVotes(f);
 
         // atualiza agregados (sem abstenções implícitas ainda)
         recomputeItemResults(itemOrderNo);
