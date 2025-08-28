@@ -4,19 +4,18 @@ import { rollCallService } from '../services/credentialService';
 import { voteService } from '../services/voteService';
 
 export const voteController = {
-    /** POST /api/vote/access  => body: { block, unit, code } */
+    /** POST /api/vote/access  => body: { block, unit, pin  } */
     access: (req: Request, res: Response) => {
-        const { block, unit, code } = req.body || {};
+        const { block, unit, pin } = req.body || {};
         try {
-            if (state.assembly.status !== 'started') {
-                return res.status(400).json({ ok: false, error: 'Assembleia não iniciada' });
+            if (state.assembly.status === 'closed') {
+                return res.status(400).json({ ok: false, error: 'Assembleia encerrada' });
             }
-            if (!block || !unit || !code) {
-                return res.status(400).json({ ok: false, error: 'block, unit e code são obrigatórios' });
+            if (!block || !unit || !pin) {
+                return res.status(400).json({ ok: false, error: 'block, unit e pin são obrigatórios' });
             }
-            const attendee = rollCallService.markAccess(block, unit, code);
-            // Retorne apenas um token anônimo (attendeeId) para a sessão
-            res.json({ ok: true, attendeeId: attendee.attendeeId, accessedAt: attendee.accessedAt });
+            const result = rollCallService.markAccess(block, unit, pin);
+            res.json({ ok: true, content: result });
         } catch (e: any) {
             res.status(400).json({ ok: false, error: e.message });
         }
@@ -24,21 +23,22 @@ export const voteController = {
 
     /** POST /api/vote/cast => body: { attendeeId, itemOrder, choice } */
     cast: (req: Request, res: Response) => {
-        const { attendeeId, itemOrder, choice } = req.body || {};
+        const { attendeeId, choice, itemOrderNo } = req.body || {};
+
         try {
-            if (state.assembly.status !== 'started') {
-                return res.status(400).json({ ok: false, error: 'Assembleia não iniciada' });
+            if (state.assembly.status === 'closed') {
+                return res.status(400).json({ ok: false, error: 'Assembleia encerrada' });
             }
-            if (!attendeeId || !itemOrder || !choice) {
-                return res.status(400).json({ ok: false, error: 'attendeeId, itemOrder e choice são obrigatórios' });
+            if (!attendeeId || !itemOrderNo || !choice) {
+                return res.status(400).json({ ok: false, error: 'attendeeId, itemOrderNo e choice são obrigatórios' });
             }
 
             // já votou neste item?
-            if (voteService.hasVoted(attendeeId, Number(itemOrder))) {
+            if (voteService.hasVoted(attendeeId, Number(itemOrderNo))) {
                 return res.status(400).json({ ok: false, error: 'Voto já registrado para este item' });
             }
 
-            const rec = voteService.cast(attendeeId, Number(itemOrder), String(choice));
+            const rec = voteService.cast(attendeeId, Number(itemOrderNo), choice);
             res.json({ ok: true, voteId: rec.id, createdAt: rec.createdAt });
         } catch (e: any) {
             res.status(400).json({ ok: false, error: e.message });

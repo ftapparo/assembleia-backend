@@ -83,3 +83,11 @@ Pull requests são bem-vindos! Para sugestões, abra uma issue.
 
 ## Licença
 MIT
+
+
+quorum_type: simples ou qualificado
+quorum_value: percentual quando qualificado (ex.: 66.67)
+compute: simples (1 por voto) ou fracao (m² / fração ideal)
+vote_type: direto (SIM/NÃO/ABSTENÇÃO)
+multiple: sempre false (POC enxuta)
+permanent: true apenas no item 9 (pode virar assembleia permanente até atingir

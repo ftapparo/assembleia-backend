@@ -23,20 +23,17 @@ const router = Router();
  * /vote/access:
  *   post:
  *     tags: [Votação]
- *     summary: Valida o acesso do morador (bloco/unidade/código) e retorna attendeeId
+ *     summary: Valida o acesso do morador (bloco/unidade/PIN) e retorna o attendeeId
  *     description: |
- *       Marca o acesso do morador no *roll_call.json* (campos `accessedAt` e `accessStatus=accessed`).
- *       Requer que a assembleia esteja com `status=started` e que a presença tenha sido registrada no credenciamento.
+ *       Marca o acesso do morador no *roll_call.json* (`accessedAt` e `accessStatus=accessed`).
+ *       Requer que a assembleia esteja com `status=started` e que a presença já tenha sido registrada no credenciamento.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - block
- *               - unit
- *               - code
+ *             required: [block, unit, pin]
  *             properties:
  *               block:
  *                 type: string
@@ -45,18 +42,60 @@ const router = Router();
  *                 oneOf:
  *                   - type: integer
  *                   - type: string
- *                 example: 6
- *               code:
+ *                 example: 124
+ *               pin:
  *                 type: string
- *                 description: Código de 6 caracteres fornecido no credenciamento
+ *                 description: Código (PIN) de 6 caracteres fornecido no credenciamento
  *                 example: "A5D6XA"
  *     responses:
  *       200:
- *         description: Acesso validado
+ *         description: Acesso validado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 attendeeId:
+ *                   type: string
+ *                   example: "att_48sy0fe32vf2kxk0un84v"
+ *                 block:
+ *                   type: string
+ *                   example: "A"
+ *                 unit:
+ *                   oneOf:
+ *                     - type: integer
+ *                     - type: string
+ *                   example: 124
+ *                 accessStatus:
+ *                   type: string
+ *                   enum: [accessed]
+ *                   example: "accessed"
+ *                 fraction:
+ *                   type: number
+ *                   description: Fração da unidade principal usada para votos por fração ideal
+ *                   example: 0.212253
+ *                 linked_units:
+ *                   type: array
+ *                   description: Unidades vinculadas (procuração/vaga extra) já associadas a este attendee
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       block:
+ *                         type: string
+ *                         example: "A"
+ *                       unit:
+ *                         oneOf:
+ *                           - type: integer
+ *                           - type: string
+ *                         example: 126
+ *                       fraction:
+ *                         type: number
+ *                         example: 0.198745
  *       400:
- *         description: Erro de validação (assembleia não iniciada, dados inválidos, presença não encontrada, etc.)
+ *         description: Erro de validação (assembleia não iniciada, dados inválidos, presença não encontrada, PIN incorreto, etc.)
  */
 router.post('/vote/access', voteController.access);
+
 
 /**
  * @swagger
@@ -93,7 +132,7 @@ router.post('/vote/access', voteController.access);
  *       200:
  *         description: Voto registrado
  *       400:
- *         description: Erro ao votar (assembleia não iniciada, item fechado, voto duplicado, etc.)
+ *         description: Erro ao votar (assembleia encerrada, item fechado, voto duplicado, etc.)
  */
 router.post('/vote/cast', voteController.cast);
 

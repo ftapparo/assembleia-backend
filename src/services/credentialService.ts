@@ -6,7 +6,7 @@ import { Assembly } from './assemblyService';
 export type LinkedUnit = {
     block: string;
     unit: string;
-    code: string;
+    pin: string;
     fraction: number;
     relation: 'procuracao' | 'vaga_extra' | 'outra';
 };
@@ -15,7 +15,7 @@ export type Attendee = {
     attendeeId: string;
     block: string;
     unit: string;
-    code: string;
+    pin: string;
     fraction: number;
     arrivedAt: string;
     linked_units: LinkedUnit[];
@@ -73,17 +73,16 @@ export class RollCallService {
     }
 
     initHeader(assembly: Assembly) {
-        const curr: RollCallFile = {
-            header: {
-                assemblyId: assembly.id,
-                title: assembly.title,
-                date: assembly.date,
-                createdAt: new Date().toISOString(),
-                status: assembly.status
-            },
-            attendees: []
+        const file = this.read();
+        if (file.header) throw new Error('Assembleia já inicializada no roll_call.json');
+        file.header = {
+            assemblyId: assembly.id,
+            title: assembly.title,
+            date: assembly.date,
+            createdAt: new Date().toISOString(),
+            status: assembly.status
         };
-        this.write(curr);
+        this.write(file);
     }
 
     updateStatus(status: string) {
@@ -101,12 +100,43 @@ export class RollCallService {
         return this.units.findByBlockUnit(block, unit);
     }
 
-    markPresent(attendeeId: number) {
+    getLookupInfo(block: string, unit: string | number) {
+        // lê o roll_call.json
         const file = this.read();
-        if (!file.header || file.header.status !== 'started') {
-            throw new Error('Assembleia não está aberta para credenciamento');
+
+        // normaliza bloco e unidade para comparar
+        const normalizedBlock = String(block).toUpperCase().replace("BLOCO", "").trim();
+        const normalizedUnit = String(unit).replace(/^0+/, "");
+
+        // procura na lista de presença
+        const attendee = file.attendees.find(
+            (a: any) =>
+                a.block.toUpperCase() === normalizedBlock &&
+                String(a.unit) === normalizedUnit
+        );
+
+        if (!attendee) return undefined;
+
+        // garante que sempre retorna o shape completo
+        return {
+            attendeeId: attendee.attendeeId,
+            block: attendee.block,
+            unit: attendee.unit,
+            pin: attendee.pin,
+            fraction: attendee.fraction,
+            arrivedAt: attendee.arrivedAt,
+            linked_units: attendee.linked_units || [],
+            accessStatus: attendee.accessStatus || "pending"
+        };
+    }
+
+
+    markPresent(block: string, unit: string | number) {
+        const file = this.read();
+        if (file.header && file.header.status == 'closed') {
+            throw new Error('Assembleia encerrada, não é possível marcar presença');
         }
-        const u = this.units.findById(attendeeId);
+        const u = this.units.findByBlockUnit(block, unit);
         if (!u) throw new Error('Unidade não encontrada');
 
         // Verifica se já existe presença para o mesmo bloco e unidade
@@ -117,7 +147,7 @@ export class RollCallService {
             attendeeId: cuid(),
             block: String(u.block),
             unit: String(u.unit),
-            code: u.code,
+            pin: u.pin,
             fraction: u.fraction,
             arrivedAt: new Date().toISOString(),
             linked_units: [],
@@ -131,8 +161,8 @@ export class RollCallService {
 
     linkUnit(attendeeId: string, block: string, unit: string | number, relation: LinkedUnit['relation']) {
         const file = this.read();
-        if (!file.header || file.header.status !== 'started') {
-            throw new Error('Assembleia não está aberta para vinculação');
+        if (file.header && file.header.status == 'closed') {
+            throw new Error('Assembleia encerrada, não é possível vincular unidade');
         }
         const idx = file.attendees.findIndex(a => a.attendeeId === attendeeId);
         if (idx < 0) throw new Error('Attendee não encontrado');
@@ -151,7 +181,7 @@ export class RollCallService {
         const link: LinkedUnit = {
             block: String(u.block),
             unit: String(u.unit),
-            code: u.code,
+            pin: u.pin,
             fraction: u.fraction,
             relation
         };
@@ -166,15 +196,15 @@ export class RollCallService {
         return { attendee: file.attendees[idx], totalFraction };
     }
 
-    markAccess(block: string, unit: string | number, code: string) {
+    markAccess(block: string, unit: string | number, pin: string) {
         const file = this.read();
-        if (!file.header || file.header.status !== 'started') {
-            throw new Error('Assembleia não está aberta');
+        if (file.header && file.header.status == 'closed') {
+            throw new Error('Assembleia encerrada');
         }
         const idx = file.attendees.findIndex(a =>
             a.block.toUpperCase() === String(block).toUpperCase().replace('BLOCO', '').trim() &&
             a.unit === String(unit).replace(/^0+/, '') &&
-            a.code === code
+            a.pin === pin
         );
         if (idx < 0) throw new Error('Presença não encontrada. Procure o credenciamento.');
         file.attendees[idx].accessedAt = new Date().toISOString();
@@ -183,10 +213,10 @@ export class RollCallService {
         return file.attendees[idx];
     }
 
-    getCodeByUnit(block: string, unit: string | number) {
+    getPINByUnit(block: string, unit: string | number) {
         const u = this.units.findByBlockUnit(block, unit);
         if (!u) throw new Error('Unidade não encontrada');
-        return { id: u.id, block: u.block, unit: u.unit, code: u.code, fraction: u.fraction };
+        return { id: u.id, block: u.block, unit: u.unit, pin: u.pin, fraction: u.fraction };
     }
 }
 

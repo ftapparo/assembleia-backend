@@ -6,10 +6,10 @@ export type UnitRecord = {
     unit: number | string;
     block: string;
     fraction: number;    // percentual (ex.: 0.300133)
-    code: string;        // código de 6 chars
+    pin: string;        // código de 6 chars
 };
 
-const UNITS_FILE = path.resolve(process.cwd(), 'data', 'units_with_codes.json');
+const UNITS_FILE = path.resolve(process.cwd(), 'data', 'units_with_pins.json');
 
 export class UnitsService {
     private units: UnitRecord[] = [];

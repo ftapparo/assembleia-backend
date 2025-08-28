@@ -1,3 +1,4 @@
+// src/services/vote.service.ts
 import fs from 'fs';
 import path from 'path';
 import { state } from './assemblyService';
@@ -8,19 +9,18 @@ export type VoteRecord = {
     assemblyId: string;
     item_order_no: number;
     attendeeId: string;
-    block: string;       // NOVO
-    unit: string;        // NOVO
-    choice: string;
+    block: string;
+    unit: string;
+    choice: number;
     weight: number;
     createdAt: string;
 };
 
-type VotesFile = {
-    votes: VoteRecord[];
-};
+type VotesFile = { votes: VoteRecord[] };
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 const VOTES_FILE = path.join(DATA_DIR, 'units_votes.json');
+const STATE_FILE = path.join(DATA_DIR, 'assembly_state.json');
 
 function cuid() {
     return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
@@ -41,7 +41,6 @@ function writeVotes(data: VotesFile) {
     fs.writeFileSync(VOTES_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-/** Soma frações do attendee (principal + vinculadas) */
 function computeAttendeeWeight(attendeeId: string, computeMode: 'simples' | 'fracao') {
     const rc = rollCallService.read();
     const a = rc.attendees.find(x => x.attendeeId === attendeeId);
@@ -51,73 +50,107 @@ function computeAttendeeWeight(attendeeId: string, computeMode: 'simples' | 'fra
 
     const linkedSum = (a.linked_units || []).reduce((acc, u) => acc + (u.fraction || 0), 0);
     const total = (a.fraction || 0) + linkedSum;
-    return total; // já é a fração ideal total do conjunto
+    return total;
 }
 
-function recomputeItemResults(itemOrderNo: number) {
-    const votesFile = ensureVotesFile();
+function aggregateItem(itemOrderNo: number) {
     const s = state.getState();
-    const item = s.items.find(i => i.order_no === itemOrderNo);
-    if (!item) throw new Error('Item não encontrado');
-
-    const votes = votesFile.votes.filter(v => v.assemblyId === s.assembly.id && v.item_order_no === itemOrderNo);
+    const file = ensureVotesFile();
+    const votes = file.votes.filter(
+        v => v.assemblyId === s.assembly.id && v.item_order_no === itemOrderNo
+    );
 
     const totals: Record<string, { count: number; weight: number }> = {};
     let totalCount = 0;
     let totalWeight = 0;
 
     for (const v of votes) {
-        if (!totals[v.choice]) totals[v.choice] = { count: 0, weight: 0 };
-        totals[v.choice].count += 1;
-        totals[v.choice].weight += v.weight;
+        const key = String(v.choice); // normaliza a chave
+        if (!totals[key]) totals[key] = { count: 0, weight: 0 };
+        totals[key].count += 1;
+        totals[key].weight += v.weight;
         totalCount += 1;
         totalWeight += v.weight;
     }
 
-    item.results = { totals, totalCount, totalWeight };
-    // persiste em assembly-state.json
-    const newState = state.getState();
-    const idx = newState.items.findIndex(i => i.order_no === itemOrderNo);
-    if (idx >= 0) {
-        newState.items[idx] = item;
-        // grava arquivo
-        const statePath = path.join(DATA_DIR, 'assembly_state.json');
-        fs.writeFileSync(statePath, JSON.stringify(newState, null, 2), 'utf-8');
-    }
+    return { totals, totalCount, totalWeight };
+}
+
+export function recomputeItemResults(itemOrderNo: number) {
+    const s = state.getState();
+    const item = s.items.find(i => i.order_no === itemOrderNo);
+    if (!item) throw new Error('Item não encontrado');
+
+    const agg = aggregateItem(itemOrderNo);
+    item.results = agg;
+
+    // GRAVA O SNAPSHOT ALTERADO (s), não um novo getState()
+    fs.writeFileSync(STATE_FILE, JSON.stringify(s, null, 2), 'utf-8');
+}
+
+export function finalizeOnClose(itemOrderNo: number) {
+    const s = state.getState();
+    const item = s.items.find(i => i.order_no === itemOrderNo);
+    if (!item) throw new Error('Item não encontrado');
+
+    const agg = aggregateItem(itemOrderNo);
+    item.results = agg;
+
+    fs.writeFileSync(STATE_FILE, JSON.stringify(s, null, 2), 'utf-8');
 }
 
 export const voteService = {
-    /** Verifica se já votou neste item */
     hasVoted(attendeeId: string, itemOrderNo: number) {
+        const assemblyId = state.getState().assembly.id; // corrigido
         const f = ensureVotesFile();
-        return f.votes.some(v => v.assemblyId === state.assembly.id && v.item_order_no === itemOrderNo && v.attendeeId === attendeeId);
+        return f.votes.some(
+            v => v.assemblyId === assemblyId && v.item_order_no === itemOrderNo && v.attendeeId === attendeeId
+        );
     },
 
-    /** Registra voto e atualiza resultado */
-    cast(attendeeId: string, itemOrderNo: number, choice: string) {
+    cast(attendeeId: string, itemOrderNo: number, choice: number) {
         const s = state.getState();
         const item = s.items.find(i => i.order_no === itemOrderNo);
         if (!item) throw new Error('Item não encontrado');
         if (item.status !== 'open') throw new Error('Votação não está aberta para este item');
 
-        // validar se attendee está presente na lista de presença
+        // validar presença e acesso
         const rc = rollCallService.read();
+        if (rc.header && rc.header.status === 'closed') {
+            throw new Error('Assembleia encerrada');
+        }
+
         const attendee = rc.attendees.find(a => a.attendeeId === attendeeId);
         if (!attendee) throw new Error('Attendee não encontrado na lista de presença');
+        if (attendee.accessStatus !== 'accessed') {
+            throw new Error('Acesso não validado. Faça login com bloco/unidade/código no seu celular.');
+        }
+
+        // impedir voto duplicado do mesmo attendee no mesmo item
+        const assemblyId = s.assembly.id;
+        const already = ensureVotesFile().votes.find(
+            v => v.assemblyId === assemblyId && v.item_order_no === itemOrderNo && v.attendeeId === attendeeId
+        );
+        if (already) throw new Error('Voto já registrado para este item.');
+
+        // voto direto: 1|2
+        const ch = Number(choice);
+        if (item.vote_type === 'direto' && ![1, 2].includes(ch)) {
+            throw new Error('Opção inválida. Para voto direto use 1 (SIM), 2 (NÃO).');
+        }
 
         const f = ensureVotesFile();
 
-        // helper para peso por unidade
+        // peso por unidade
         const unitWeight = (fraction?: number) =>
             item.compute === 'simples' ? 1.0 : Number(fraction || 0);
 
         const nowISO = new Date().toISOString();
-        const ch = String(choice).toUpperCase();
 
-        // 1) voto da UNIDADE PRINCIPAL
+        // 1) unidade principal
         const mainRec: VoteRecord = {
             id: cuid(),
-            assemblyId: s.assembly.id,
+            assemblyId,
             item_order_no: itemOrderNo,
             attendeeId: attendee.attendeeId,
             block: attendee.block,
@@ -128,13 +161,13 @@ export const voteService = {
         };
         f.votes.push(mainRec);
 
-        // 2) votos das UNIDADES VINCULADAS (procuração/vaga extra), todos com a MESMA escolha
+        // 2) vinculadas (procuração/vaga extra)
         for (const link of (attendee.linked_units || [])) {
             const rec: VoteRecord = {
                 id: cuid(),
-                assemblyId: s.assembly.id,
+                assemblyId,
                 item_order_no: itemOrderNo,
-                attendeeId: attendee.attendeeId,      // mantém referência ao mesmo attendee
+                attendeeId: attendee.attendeeId,
                 block: link.block,
                 unit: String(link.unit),
                 choice: ch,
@@ -144,16 +177,14 @@ export const voteService = {
             f.votes.push(rec);
         }
 
-        // persiste arquivo de votos
+        // persiste votos
         writeVotes(f);
 
-        // atualiza resultados agregados do item (somatório dos pesos dos N registros)
+        // atualiza agregados (sem abstenções implícitas ainda)
         recomputeItemResults(itemOrderNo);
 
-        // retorna o registro principal (compatibilidade com chamadas existentes)
         return mainRec;
     },
 
-    /** Recalcula resultados de um item (pode ser chamado ao fechar) */
     recompute: (itemOrderNo: number) => recomputeItemResults(itemOrderNo)
 };

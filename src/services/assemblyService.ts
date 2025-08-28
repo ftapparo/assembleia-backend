@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { finalizeOnClose } from './voteService';
 
 export type QuorumType = 'simples' | 'qualificado';
 export type ComputeType = 'simples' | 'fracao';
@@ -149,7 +150,7 @@ class AssemblyService {
 
     openItem(orderNo: number) {
         const s = readState();
-        if (s.assembly.status !== 'started') throw new Error('Assembleia não iniciada');
+        if (s.assembly.status === 'closed') throw new Error('Assembleia encerrada');
 
         const idx = s.items.findIndex(i => i.order_no === orderNo);
         if (idx < 0) throw new Error('Item não encontrado');
@@ -170,12 +171,15 @@ class AssemblyService {
         const s = readState();
         const idx = s.items.findIndex(i => i.order_no === orderNo);
         if (idx < 0) throw new Error('Item não encontrado');
-        if (s.items[idx].status !== 'open') throw new Error('Item não está aberto');
 
         s.items[idx].status = 'closed';
         s.items[idx].votingEndedAt = new Date().toISOString();
         if (s.currentItem === orderNo) s.currentItem = undefined;
+
         writeState(s);
+
+        // IMPORTANTE: computa abstenções implícitas e fixa o resultado final
+        finalizeOnClose(orderNo);
     }
 
     voidItem(orderNo: number) {

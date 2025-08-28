@@ -16,7 +16,7 @@ import http from 'http';
 import swaggerUi from 'swagger-ui-express';
 import healthRoutes from '../routes/healthRoutes';
 import adminRoutes from '../routes/adminRoutes';
-import operatorRoutes from '../routes/operatorRoutes';
+import credentialRoutes from '../routes/credentialRoutes';
 import voteRoutes from '../routes/voteRoutes';
 
 import { createIO } from '../sockets/io';
@@ -62,7 +62,7 @@ export async function startServer() {
      */
     app.use('/api', healthRoutes);
     app.use('/api', adminRoutes);
-    app.use('/api', operatorRoutes);
+    app.use('/api', credentialRoutes);
     app.use('/api', voteRoutes);
     app.use('/api', publicRoutes);
 

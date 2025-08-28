@@ -50,8 +50,8 @@ export const swaggerSpec = swaggerJSDoc({
         description: 'Consultas públicas de assembleia e itens',
       },
       {
-        name: 'Operador',
-        description: 'Rotas de operador',
+        name: 'Credencial',
+        description: 'Rotas para credenciamento e lista de presença',
       },
       {
         name: 'Votação',
