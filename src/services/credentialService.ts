@@ -143,6 +143,10 @@ export class RollCallService {
         const jaPresente = file.attendees.some(a => a.block === String(u.block) && a.unit === String(u.unit));
         if (jaPresente) throw new Error('Unidade já marcada como presente');
 
+        // Verifica se esta vinculado a outra unidade por procuração
+        const temProcuracao = file.attendees.some(a => a.linked_units.some(l => l.block === String(u.block) && l.unit === String(u.unit)));
+        if (temProcuracao) throw new Error('Unidade já vinculada a outra unidade por procuração');
+
         const attendee: Attendee = {
             attendeeId: cuid(),
             block: String(u.block),
